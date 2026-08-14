@@ -5,45 +5,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control de Rondas - Reporte PDF</title>
     
+    <!-- Configuración PWA básica -->
     <meta name="theme-color" content="#1e293b">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     
+    <!-- Tailwind CSS v4 para diseño limpio y profesional -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         body { font-family: system-ui, -apple-system, sans-serif; }
+        /* Fuerza el color blanco absoluto a cualquier elemento de texto e inputs */
+        .blanco-absoluto, label, p, span, div, h1, h2, h3, input, footer {
+            color: #ffffff !important;
+        }
         /* Efecto de relieve en las letras para que resalten al máximo */
         .texto-resaltado {
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
         }
     </style>
 </head>
-<body class="bg-slate-900 text-white min-h-screen flex flex-col justify-between">
+<body class="bg-slate-900 min-h-screen flex flex-col justify-between blanco-absoluto">
 
-    <header class="bg-slate-900 p-4 text-center border-b-2 border-slate-700 shadow-md">
-        <h1 class="text-2xl font-black tracking-widest text-emerald-400 texto-resaltado">CONTROL DE RONDAS</h1>
-        <p class="text-sm font-bold text-white mt-1 uppercase tracking-wider">Registro de Seguridad por GPS</p>
+    <!-- CABECERA DE LA APP -->
+    <header class="bg-slate-950 p-4 text-center border-b-2 border-slate-700 shadow-md">
+        <h1 class="text-2xl font-black tracking-widest text-white texto-resaltado">CONTROL DE RONDAS</h1>
+        <p class="text-sm font-black text-white mt-1 uppercase tracking-wider texto-resaltado">REGISTRO DE SEGURIDAD POR GPS</p>
     </header>
 
-    <main class="p-4 max-w-md mx-auto w-full flex-grow flex flex-col justify-start gap-6">
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="p-4 max-w-md mx-auto w-full flex-grow flex flex-col justify-start gap-5">
         
+        <!-- INDICADOR DE VIGILADOR ACTIVO (Solo visible durante el recorrido) -->
+        <div id="panelVigiladorActivo" class="bg-slate-950 p-3 rounded-xl border-2 border-slate-700 shadow-lg text-center hidden">
+            <span class="text-xs font-black uppercase tracking-wider text-slate-400">VIGILADOR EN RECORRIDO:</span>
+            <p id="nombreVigiladorEnCurso" class="text-lg font-black text-white uppercase mt-0.5 tracking-wide texto-resaltado"></p>
+        </div>
+
+        <!-- ESTADO ACTUAL -->
         <div class="bg-slate-950 p-5 rounded-xl border-2 border-slate-700 shadow-inner text-center">
-            <h2 class="text-xs font-black uppercase tracking-widest text-white">Estado del Recorrido</h2>
-            <div id="estadoTexto" class="text-2xl font-black mt-2 text-amber-400 tracking-wide texto-resaltado">NO INICIADO</div>
-            <div id="infoRondaActual" class="text-sm font-black text-white mt-2 hidden">
-                Puestos marcados: <span id="contadorPuestos" class="text-xl font-black text-emerald-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-700">0</span>
+            <h2 class="text-xs font-black uppercase tracking-widest text-white">ESTADO DEL RECORRIDO</h2>
+            <div id="estadoTexto" class="text-2xl font-black mt-2 text-white tracking-wide texto-resaltado">NO INICIADO</div>
+            <div id="infoRondaActual" class="text-sm font-black text-white mt-3 hidden">
+                PUESTOS MARCADOS: <span id="contadorPuestos" class="text-xl font-black text-white bg-slate-900 px-3 py-1 rounded border-2 border-slate-700">0</span>
             </div>
         </div>
 
+        <!-- BOTONES DE ACCIÓN (PANEL DEL VIGILADOR) -->
         <div class="grid grid-cols-1 gap-4">
+            <!-- Botón Iniciar -->
             <button id="btnInicio" onclick="iniciarRecorrido()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-5 px-6 rounded-xl shadow-xl transition-all transform active:scale-95 text-xl tracking-wider texto-resaltado border-b-4 border-emerald-800">
                 ▶ INICIAR RECORRIDO
             </button>
 
+            <!-- Botón Marcar Puesto -->
             <button id="btnPuesto" onclick="marcarPuesto()" class="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:opacity-40 text-white font-black py-7 px-6 rounded-xl shadow-xl transition-all transform active:scale-95 text-2xl tracking-wider texto-resaltado border-b-4 border-blue-800 hidden">
-                📍 MARCAR PUESTO <span id="siguientePuestoNum" class="bg-slate-950 px-2.5 py-0.5 rounded ml-1 text-emerald-400">1</span>
+                📍 MARCAR PUESTO <span id="siguientePuestoNum" class="bg-slate-950 px-3 py-0.5 rounded ml-1 border border-slate-600 text-white">1</span>
             </button>
 
+            <!-- Botón Finalizar -->
             <button id="btnFin" onclick="finalizarRecorrido()" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-black py-4 px-6 rounded-xl shadow-xl transition-all transform active:scale-95 text-lg tracking-wider texto-resaltado border-b-4 border-rose-800 hidden">
                 ⏹ TERMINAR RECORRIDO
             </button>
@@ -51,20 +70,22 @@
 
         <hr class="border-2 border-slate-800 my-1">
 
+        <!-- PANEL DE ADMINISTRACIÓN -->
         <div class="bg-slate-950 p-5 rounded-xl border-2 border-slate-700 shadow-lg">
-            <h3 class="text-sm font-black uppercase tracking-widest text-white mb-4 text-center border-b border-slate-800 pb-2">Generar Reporte PDF</h3>
+            <h3 class="text-sm font-black uppercase tracking-widest text-white mb-4 text-center border-b border-slate-800 pb-2">GENERAR REPORTE PDF</h3>
             
             <div class="grid grid-cols-2 gap-3 mb-4">
                 <div>
-                    <label class="block text-xs font-black uppercase tracking-wider text-white mb-1">Fecha Desde:</label>
-                    <input type="date" id="fechaDesde" class="w-full bg-slate-800 text-white font-bold text-sm rounded-lg p-2.5 border-2 border-slate-600 focus:outline-none focus:border-blue-500">
+                    <label class="block text-xs font-black uppercase tracking-wider text-white mb-1">FECHA DESDE:</label>
+                    <input type="date" id="fechaDesde" class="w-full bg-slate-800 text-white font-black text-sm rounded-lg p-2.5 border-2 border-slate-600 focus:outline-none focus:border-blue-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-black uppercase tracking-wider text-white mb-1">Fecha Hasta:</label>
-                    <input type="date" id="fechaHasta" class="w-full bg-slate-800 text-white font-bold text-sm rounded-lg p-2.5 border-2 border-slate-600 focus:outline-none focus:border-blue-500">
+                    <label class="block text-xs font-black uppercase tracking-wider text-white mb-1">FECHA HASTA:</label>
+                    <input type="date" id="fechaHasta" class="w-full bg-slate-800 text-white font-black text-sm rounded-lg p-2.5 border-2 border-slate-600 focus:outline-none focus:border-blue-500">
                 </div>
             </div>
 
+            <!-- BOTÓN EXPORTAR -->
             <button onclick="exportarPDF()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-black py-3 px-4 rounded-xl text-md tracking-wider transition-colors shadow-lg texto-resaltado border-b-4 border-purple-800">
                 📄 EXPORTAR A PDF
             </button>
@@ -72,14 +93,17 @@
 
     </main>
 
-    <footer class="bg-slate-950 p-3 text-center text-xs font-black uppercase tracking-widest text-slate-400 border-t border-slate-800">
-        Datos almacenados localmente en el dispositivo.
+    <!-- PIE DE PÁGINA -->
+    <footer class="bg-slate-950 p-3 text-center text-xs font-black uppercase tracking-widest border-t border-slate-800">
+        DATOS ALMACENADOS LOCALMENTE EN EL DISPOSITIVO.
     </footer>
 
+    <!-- LÓGICA DEL SISTEMA -->
     <script>
         let enRecorrido = false;
         let idRondaActual = null;
         let contadorPuestos = 0;
+        let vigiladorActual = "";
 
         window.onload = function() {
             const hoy = new Date().toISOString().split('T')[0];
@@ -92,6 +116,7 @@
                 enRecorrido = true;
                 idRondaActual = datos.idRonda;
                 contadorPuestos = datos.contador;
+                vigiladorActual = datos.vigilador || "";
                 actualizarInterfaz();
             }
         };
@@ -104,23 +129,31 @@
             const infoRondaActual = document.getElementById('infoRondaActual');
             const siguientePuestoNum = document.getElementById('siguientePuestoNum');
             const contPuestosText = document.getElementById('contadorPuestos');
+            const panelVigilador = document.getElementById('panelVigiladorActivo');
+            const nombreVigiladorEnCurso = document.getElementById('nombreVigiladorEnCurso');
 
             if (enRecorrido) {
                 btnInicio.classList.add('hidden');
                 btnPuesto.classList.remove('hidden');
                 btnFin.classList.remove('hidden');
                 estadoTexto.innerText = "EN RECORRIDO";
-                estadoTexto.className = "text-2xl font-black mt-2 text-emerald-400 tracking-wide animate-pulse texto-resaltado";
+                estadoTexto.className = "text-2xl font-black mt-2 text-white tracking-wide animate-pulse texto-resaltado";
                 infoRondaActual.classList.remove('hidden');
                 contPuestosText.innerText = contadorPuestos;
                 siguientePuestoNum.innerText = contadorPuestos + 1;
+
+                if (vigiladorActual) {
+                    nombreVigiladorEnCurso.innerText = vigiladorActual;
+                    panelVigilador.classList.remove('hidden');
+                }
             } else {
                 btnInicio.classList.remove('hidden');
                 btnPuesto.classList.add('hidden');
                 btnFin.classList.add('hidden');
                 estadoTexto.innerText = "NO INICIADO";
-                estadoTexto.className = "text-2xl font-black mt-2 text-amber-400 tracking-wide texto-resaltado";
+                estadoTexto.className = "text-2xl font-black mt-2 text-white tracking-wide texto-resaltado";
                 infoRondaActual.classList.add('hidden');
+                panelVigilador.classList.add('hidden');
             }
         }
 
@@ -146,34 +179,42 @@
         }
 
         async function iniciarRecorrido() {
-            if (confirm("¿Desea iniciar un nuevo recorrido de ronda?")) {
-                document.getElementById('btnInicio').disabled = true;
-                document.getElementById('btnInicio').innerText = "OBTENIENDO GPS...";
-
-                const gps = await obtenerGPS();
-                const ahora = new Date();
-                
-                idRondaActual = "Ronda #" + ahora.getTime().toString().slice(-6);
-                contadorPuestos = 0;
-                enRecorrido = true;
-
-                const registroInicio = {
-                    idRonda: idRondaActual,
-                    fecha: ahora.toISOString().split('T')[0],
-                    hora: ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}),
-                    evento: "INICIO RECORRIDO",
-                    coordenadas: gps.lat !== "Sin Permiso" && gps.lat !== "No Soportado" ? `${gps.lat}, ${gps.lon}` : "N/A",
-                    mapaLink: gps.lat !== "Sin Permiso" && typeof gps.lat === 'number' ? `https://maps.google.com/?q=${gps.lat},${gps.lon}` : ""
-                };
-
-                guardarRegistro(registroInicio);
-                guardarEstadoRondaActiva();
-                
-                document.getElementById('btnInicio').disabled = false;
-                document.getElementById('btnInicio').innerText = "▶ INICIAR RECORRIDO";
-                
-                actualizarInterfaz();
+            let nombreIngresado = prompt("POR FAVOR, INGRESA TU NOMBRE Y APELLIDO:");
+            
+            if (!nombreIngresado || nombreIngresado.trim() === "") {
+                alert("Debes ingresar Nombre y Apellido para poder iniciar un recorrido.");
+                return;
             }
+
+            vigiladorActual = nombreIngresado.trim().toUpperCase();
+
+            document.getElementById('btnInicio').disabled = true;
+            document.getElementById('btnInicio').innerText = "OBTENIENDO GPS...";
+
+            const gps = await obtenerGPS();
+            const ahora = new Date();
+            
+            idRondaActual = "Ronda #" + ahora.getTime().toString().slice(-6);
+            contadorPuestos = 0;
+            enRecorrido = true;
+
+            const registroInicio = {
+                idRonda: idRondaActual,
+                vigilador: vigiladorActual,
+                fecha: ahora.toISOString().split('T')[0],
+                hora: ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}),
+                evento: "INICIO RECORRIDO",
+                coordenadas: gps.lat !== "Sin Permiso" && gps.lat !== "No Soportado" ? `${gps.lat}, ${gps.lon}` : "N/A",
+                mapaLink: gps.lat !== "Sin Permiso" && typeof gps.lat === 'number' ? `https://maps.google.com/?q=${gps.lat},${gps.lon}` : ""
+            };
+
+            guardarRegistro(registroInicio);
+            guardarEstadoRondaActiva();
+            
+            document.getElementById('btnInicio').disabled = false;
+            document.getElementById('btnInicio').innerText = "▶ INICIAR RECORRIDO";
+            
+            actualizarInterfaz();
         }
 
         async function marcarPuesto() {
@@ -188,8 +229,9 @@
 
             const registroPuesto = {
                 idRonda: idRondaActual,
+                vigilador: vigiladorActual,
                 fecha: ahora.toISOString().split('T')[0],
-                hora: machinedTime = ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}),
+                hora: ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}),
                 evento: `Puesto ${contadorPuestos}`,
                 coordenadas: gps.lat !== "Sin Permiso" && gps.lat !== "No Soportado" ? `${gps.lat}, ${gps.lon}` : "N/A",
                 mapaLink: gps.lat !== "Sin Permiso" && typeof gps.lat === 'number' ? `https://maps.google.com/?q=${gps.lat},${gps.lon}` : ""
@@ -215,6 +257,7 @@
 
                 const registroFin = {
                     idRonda: idRondaActual,
+                    vigilador: vigiladorActual,
                     fecha: ahora.toISOString().split('T')[0],
                     hora: ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}),
                     evento: "FIN RECORRIDO",
@@ -224,10 +267,12 @@
 
                 guardarRegistro(registroFin);
                 
+                // Limpieza total del estado y borrado del nombre
                 localStorage.removeItem('ronda_activa');
                 enRecorrido = false;
                 idRondaActual = null;
                 contadorPuestos = 0;
+                vigiladorActual = ""; // Borra el nombre sin preguntar nada
 
                 btnFin.disabled = false;
                 btnFin.innerText = "⏹ TERMINAR RECORRIDO";
@@ -244,7 +289,7 @@
         }
 
         function guardarEstadoRondaActiva() {
-            const estado = { idRonda: idRondaActual, contador: contadorPuestos };
+            const estado = { idRonda: idRondaActual, contador: contadorPuestos, vigilador: vigiladorActual };
             localStorage.setItem('ronda_activa', JSON.stringify(estado));
         }
 
@@ -270,8 +315,11 @@
             let tablaHTML = '';
             filtrados.forEach(reg => {
                 const linkMapa = reg.mapaLink ? `<a href="${reg.mapaLink}" target="_blank" style="color: #0284c7; text-decoration: underline; font-weight: bold;">Ver Mapa ➔</a>` : 'N/A';
+                const nombreResp = reg.vigilador ? reg.vigilador : 'NO REGISTRADO';
+                
                 tablaHTML += `
                     <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 10px; text-align: left; font-weight: bold; text-transform: uppercase;">${nombreResp}</td>
                         <td style="padding: 10px; text-align: left;">${reg.idRonda}</td>
                         <td style="padding: 10px; text-align: center;">${reg.fecha.split('-').reverse().join('/')}</td>
                         <td style="padding: 10px; text-align: center;">${reg.hora}</td>
@@ -287,21 +335,21 @@
                 <head>
                     <title>Reporte de Rondas de Seguridad</title>
                     <style>
-                        @page { size: A4; margin: 15mm 12mm; }
+                        @page { size: A4 landscape; margin: 12mm; }
                         body { font-family: Arial, sans-serif; color: #1e293b; margin: 0; padding: 0; background-color: #ffffff; }
-                        .header { background-color: #0f172a; color: #ffffff; padding: 20px; border-radius: 6px; margin-bottom: 25px; }
-                        .header h1 { margin: 0; font-size: 20px; letter-spacing: 0.5px; color: #34d399; }
-                        .header p { margin: 5px 0 0 0; font-size: 12px; color: #94a3b8; }
-                        .meta-info { margin-bottom: 20px; font-size: 13px; color: #334155; background: #f8fafc; padding: 12px; border-radius: 6px; border-left: 4px solid #34d399; }
-                        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-                        th { background-color: #1e293b; color: #ffffff; padding: 12px 10px; font-weight: bold; font-size: 12px; text-transform: uppercase; }
+                        .header { background-color: #0f172a; color: #ffffff; padding: 20px; border-radius: 6px; margin-bottom: 20px; }
+                        .header h1 { margin: 0; font-size: 20px; letter-spacing: 0.5px; color: #ffffff; }
+                        .header p { margin: 5px 0 0 0; font-size: 12px; color: #ffffff; }
+                        .meta-info { margin-bottom: 20px; font-size: 13px; color: #1e293b; background: #f8fafc; padding: 12px; border-radius: 6px; border-left: 4px solid #0f172a; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+                        th { background-color: #1e293b; color: #ffffff; padding: 10px; font-weight: bold; font-size: 11px; text-transform: uppercase; }
                         tr:nth-child(even) { background-color: #f8fafc; }
-                        .footer { margin-top: 30px; border-top: 1px solid #cbd5e1; padding-top: 8px; text-align: center; font-size: 10px; color: #64748b; }
+                        .footer { margin-top: 25px; border-top: 1px solid #cbd5e1; padding-top: 8px; text-align: center; font-size: 10px; color: #64748b; }
                     </style>
                 </head>
                 <body>
                     <div class="header">
-                        <h1>REPORTE OFICIAL DE CONTROL DE RONDAS</h1>
+                        <h1>REPORTE OFICIAL DE CONTROL DE RONDAS DE SEGURIDAD</h1>
                         <p>Sistema Digital de Auditoría de Vigilancia y Coordenadas GPS</p>
                     </div>
                     
@@ -313,12 +361,13 @@
                     <table>
                         <thead>
                             <tr>
-                                <th style="text-align: left; width: 15%;">ID Ronda</th>
-                                <th style="text-align: center; width: 15%;">Fecha</th>
-                                <th style="text-align: center; width: 15%;">Hora</th>
-                                <th style="text-align: left; width: 20%;">Puesto / Evento</th>
-                                <th style="text-align: left; width: 20%;">Coordenadas GPS</th>
-                                <th style="text-align: center; width: 15%;">Ubicación</th>
+                                <th style="text-align: left; width: 22%;">Vigilador / Personal</th>
+                                <th style="text-align: left; width: 13%;">ID Ronda</th>
+                                <th style="text-align: center; width: 12%;">Fecha</th>
+                                <th style="text-align: center; width: 10%;">Hora</th>
+                                <th style="text-align: left; width: 18%;">Puesto / Evento</th>
+                                <th style="text-align: left; width: 15%;">Coordenadas GPS</th>
+                                <th style="text-align: center; width: 10%;">Ubicación</th>
                             </tr>
                         </thead>
                         <tbody>
